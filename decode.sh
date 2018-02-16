@@ -7,6 +7,7 @@ var fileData = fs.readFileSync('list.txt').toString()
 fileData = fileData.split(/\n/)
 
 var cache = {}
+var beingProcessed = {}
 
 async.eachLimit(fileData, 5, function (entry, callback) {
   if (entry in cache) {
@@ -14,6 +15,12 @@ async.eachLimit(fileData, 5, function (entry, callback) {
     callback()
     return
   }
+
+  if (entry in beingProcessed) {
+    beingProcessed[entry].push(callback)
+    return
+  }
+  beingProcessed[entry] = [ callback ]
 
   var options = {
     url: 'https://nominatim.openstreetmap.org/search/' + encodeURIComponent(entry) + '?format=json',
@@ -29,21 +36,26 @@ async.eachLimit(fileData, 5, function (entry, callback) {
       } catch(err) {
          cache[entry] = null
          console.error("Can\'t read result for \"" + entry + "\":", body)
-         callback()
+         callCallbacks(beingProcessed[entry])
          return
       }
 
       if (!body.length) {
         cache[entry] = null
         console.error('No results for \"' + entry + '\" returned!')
-        callback()
+        callCallbacks(beingProcessed[entry])
         return
       }
 
       cache[entry] = body[0]
-      showResult(entry)
 
-      callback()
+      // beingProcessed[entry] contains callbacks - for each we have to print a
+      // result
+      beingProcessed[entry].forEach (function () {
+        showResult(entry)
+      })
+
+      callCallbacks(beingProcessed[entry])
     }
   )
 }, function () {
@@ -57,4 +69,10 @@ function showResult (entry) {
 
   var result = cache[entry]
   console.log(result.lat + ', ' + result.lon)
+}
+
+function callCallbacks (callbacks) {
+  callbacks.forEach(function (callback) {
+    callback()
+  })
 }
