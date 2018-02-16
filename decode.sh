@@ -6,7 +6,15 @@ var async = require('async')
 var fileData = fs.readFileSync('list.txt').toString()
 fileData = fileData.split(/\n/)
 
+var cache = {}
+
 async.eachLimit(fileData, 5, function (entry, callback) {
+  if (entry in cache) {
+    showResult(entry)
+    callback()
+    return
+  }
+
   var options = {
     url: 'https://nominatim.openstreetmap.org/search/' + encodeURIComponent(entry) + '?format=json',
     headers: {
@@ -19,19 +27,21 @@ async.eachLimit(fileData, 5, function (entry, callback) {
       try {
         body = JSON.parse(body)
       } catch(err) {
+         cache[entry] = null
          console.error("Can\'t read result for \"" + entry + "\":", body)
          callback()
          return
       }
 
       if (!body.length) {
+        cache[entry] = null
         console.error('No results for \"' + entry + '\" returned!')
         callback()
         return
       }
 
-      var result = body[0]
-      console.log(result.lat + ', ' + result.lon)
+      cache[entry] = body[0]
+      showResult(entry)
 
       callback()
     }
@@ -39,3 +49,12 @@ async.eachLimit(fileData, 5, function (entry, callback) {
 }, function () {
   console.error('Finished!')
 })
+
+function showResult (entry) {
+  if (!(entry in cache) || cache[entry] === null) {
+    return
+  }
+
+  var result = cache[entry]
+  console.log(result.lat + ', ' + result.lon)
+}
