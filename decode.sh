@@ -6,7 +6,18 @@ var async = require('async')
 var fileData = fs.readFileSync('list.txt').toString()
 fileData = fileData.split(/\n/)
 
-async.eachLimit(fileData, 5, function (entry, callback) {
+var uniqueEntries = {}
+var results = {}
+
+fileData.forEach(function (entry) {
+  if (entry in uniqueEntries) {
+    uniqueEntries[entry]++
+  } else {
+    uniqueEntries[entry] = 1
+  }
+})
+
+async.eachLimit(Object.keys(uniqueEntries), 5, function (entry, callback) {
   var options = {
     url: 'https://nominatim.openstreetmap.org/search/' + encodeURIComponent(entry) + '?format=json',
     headers: {
@@ -30,12 +41,17 @@ async.eachLimit(fileData, 5, function (entry, callback) {
         return
       }
 
-      var result = body[0]
-      console.log(result.lat + ', ' + result.lon)
+      results[entry] = body[0]
 
       callback()
     }
   )
 }, function () {
-  console.error('Finished!')
+  // function will be called when all entries have been requested
+  fileData.forEach(function (entry) {
+    var result = results[entry]
+    if (result) {
+      console.log(result.lat + ', ' + result.lon)
+    }
+  })
 })
