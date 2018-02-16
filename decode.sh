@@ -19,13 +19,13 @@ async.eachLimit(fileData, 5, function (entry, callback) {
       try {
         body = JSON.parse(body)
       } catch(err) {
-         console.error("Can\'t read result:", body)
+         console.error("Can\'t read result for \"" + entry + "\":", body)
          callback()
          return
       }
 
       if (!body.length) {
-        console.error('No results returned!')
+        console.error('No results for \"' + entry + '\" returned!')
         callback()
         return
       }
