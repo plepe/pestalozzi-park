@@ -1,3 +1,5 @@
+/* global L:const, XMLHttpRequest:const */
+
 window.onload = function () {
   var map = L.map('map').setView([47.37570075, 15.0805552521008], 15)
 
@@ -21,7 +23,7 @@ window.onload = function () {
   }
 
   var oReq = new XMLHttpRequest()
-  oReq.addEventListener("load", reqListener)
-  oReq.open("GET", "result.csv?adfasf")
+  oReq.addEventListener('load', reqListener)
+  oReq.open('GET', 'result.csv?adfasf')
   oReq.send()
 }

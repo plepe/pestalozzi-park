@@ -44,18 +44,25 @@ function (entry, callback) {
   /* request result from Nominatim API */
   request(options,
     function (error, response, body) {
+      /* handle error */
+      if (error) {
+        console.error('Error requesting entry "' + entry + '": ' + error.toString())
+        callback()
+        return
+      }
+
       /* try to parse answer - on error case, print error to stderr */
       try {
         body = JSON.parse(body)
-      } catch(err) {
-         console.error("Can\'t read result for \"" + entry + "\":", body)
-         callback()
-         return
+      } catch (err) {
+        console.error("Can't read result for \"" + entry + '":', body)
+        callback()
+        return
       }
 
       /* if result is empty, print error to stderr */
       if (!body.length) {
-        console.error('No results for \"' + entry + '\" returned!')
+        console.error('No results for "' + entry + '" returned!')
         callback()
         return
       }
@@ -71,7 +78,6 @@ function (entry, callback) {
 function () {
   /* for each entry in the fileData array ... */
   fileData.forEach(function (entry) {
-
     /* print the result, if available */
     var result = results[entry]
     if (result) {
