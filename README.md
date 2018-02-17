@@ -8,3 +8,9 @@ npm install
 # update file list.txt
 ./decode.sh > result.csv
 ```
+
+# DEVELOPMENT
+Find coding errors (see https://standardjs.com/ for details)
+```sh
+npm run lint
+```
